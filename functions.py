@@ -823,6 +823,12 @@ def replace_diff(str1: str, str2: str, target_char: str = "-") -> str | None:
 
     return "".join(result_chars)
 
+def neg_line(str1: str) -> str:
+    """
+    为字符串每个字符加上 ̅  表示取反
+    
+    """
+    return "\u0305".join(f"{char}" for char in str1) + "\u0305"
 
 def do_while(
     action: typing.Callable[[], None], condition: typing.Callable[[], bool]
@@ -1060,6 +1066,10 @@ async def main():
         print(tuple)
 
     # diff_char 和 replace_diff 的使用实例可见 quine_mccluskey.py
+
+    # 测试 neg_line
+    print(neg_line("ABC"))  # A̅B̅C̅
+    print(neg_line("1010"))  # 1̅0̅1̅0̅
 
 
 if __name__ == "__main__":
