@@ -39,6 +39,10 @@
    - enumerate_comb       : 枚举所有组合
    - enumerate_perm         : 枚举所有排列
 
+6. 修饰器
+   - CopyConsructor        : 添加拷贝构造功能
+   - UseBaseMethod         : 派生类调用此方法时，强制此方法调用基类方法而不是派生类重写的方法
+
 """
 
 import asyncio
@@ -933,6 +937,41 @@ def enumerate_comb(iterable: typing.Iterable):
     """
     for length in range(0, len(list(iterable)) + 1):
         yield from itertools.combinations(iterable, length)
+
+def CopyConstructor(init_func: typing.Callable[..., typing.Any]):
+    """
+    初始化函数装饰器，用于添加拷贝构造功能。
+    
+    实际上也同时添加了从子类构造父类的功能。
+    """
+
+    def wrapper(self, *args, **kwargs):
+        if len(args) == 1 and not kwargs and isinstance(args[0], self.__class__):
+            # 拷贝构造
+            other = args[0]
+            for attr in vars(other):
+                setattr(self, attr, getattr(other, attr))
+        else:
+            # 正常初始化
+            init_func(self, *args, **kwargs)
+
+    return wrapper
+
+def UseBaseMethod(method: typing.Callable[..., typing.Any]):
+    """
+    基类方法装饰器，用于使子类调用此方法时，强制使此方法调用基类方法而不是子类覆写的方法。
+
+    如此可以强制禁用 虚函数覆写机制 而是改为使用类似 C++ 中命名隐藏 的调用逻辑。
+
+    ## Note:
+        **基类必须支持拷贝构造和子类构造父类**
+    """
+
+    def wrapper(self, *args, **kwargs):
+        # TODO:self = globals()[method.__qualname__.split('.')[0]](self)  # 转换为基类实例
+        return method(self, *args, **kwargs)
+        
+    return wrapper
 
 
 def enumerate_perm(iterable: typing.Iterable):

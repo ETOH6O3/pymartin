@@ -231,7 +231,7 @@ import builtins
 import functools
 import itertools
 
-if __name__ == "__main__" or not __name__.startswith("martin"):
+if __name__ == "__main__":
     import buildin_signatures
 else:
     from . import buildin_signatures
