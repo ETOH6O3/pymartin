@@ -1628,7 +1628,7 @@ def _test_logic():
     # GPS_radix10.simp_pipeline()
         
 
-    with open("RS时序转换.txt", "w") as f:
+    with open("__pycache__/RS时序转换.txt", "w") as f:
         print(
             "++++++++++++++++++++++++++++++RS 锁存器 ( NAND 实现 )++++++++++++++++++++++++++++++++++++++",
             file=f,
