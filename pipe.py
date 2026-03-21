@@ -231,12 +231,7 @@ import builtins
 import functools
 import itertools
 
-if __name__ == "__main__":
-    import buildin_signatures
-else:
-    from . import buildin_signatures
-
-
+from . import buildin_signatures
 class _PipeAttr(enum.StrEnum):
     """_PipeWrapper 的三个属性"""
 

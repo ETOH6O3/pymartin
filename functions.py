@@ -34,15 +34,17 @@
 4. 流程控制
    - do_while : do-while 循环实现
 
-5. 数据生成
-   - multiplication_table     : 生成乘法表
+5. 迭代器
    - enumerate_comb       : 枚举所有组合
    - enumerate_perm         : 枚举所有排列
+   - slide_square_window : 滑动方形窗口迭代器
 
 6. 修饰器
    - CopyConsructor        : 添加拷贝构造功能
    - UseBaseMethod         : 派生类调用此方法时，强制此方法调用基类方法而不是派生类重写的方法
 
+7. 杂项
+   - multiplication_table     : 生成乘法表
 """
 
 import asyncio
@@ -55,7 +57,6 @@ import itertools
 
 if __name__ == "__main__":
     import time
-    from pipe import *
 
 
 def is_odd(num: int) -> bool:
@@ -827,12 +828,14 @@ def replace_diff(str1: str, str2: str, target_char: str = "-") -> str | None:
 
     return "".join(result_chars)
 
+
 def neg_line(str1: str) -> str:
     """
     为字符串每个字符加上 ̅  表示取反
-    
+
     """
     return "\u0305".join(f"{char}" for char in str1) + "\u0305"
+
 
 def do_while(
     action: typing.Callable[[], None], condition: typing.Callable[[], bool]
@@ -938,10 +941,43 @@ def enumerate_comb(iterable: typing.Iterable):
     for length in range(0, len(list(iterable)) + 1):
         yield from itertools.combinations(iterable, length)
 
+
+def slide_square_window[T](matrix: list[list[T]], n: int) -> T:
+    """
+    在二维矩阵上滑动指定大小的窗口，并依次生成每个子矩阵。
+
+    Args:
+        matrix (list[list]): 输入的二维列表（矩阵），元素类型需一致。
+        n (int): 滑动窗口的边长，窗口为 n x n 的正方形。
+
+    Yields:
+        generator: 一个生成器对象，每次迭代产生一个中心坐标和 n x n 的子矩阵（列表的列表）的元组。
+                   若矩阵为空或窗口尺寸非法，则直接结束或抛出异常。
+
+    Raises:
+        ValueError: 当窗口大小 n 大于矩阵的行数或列数时抛出。
+    """
+    rows = len(matrix)
+    if rows == 0:
+        return
+    cols = len(matrix[0])
+    if cols == 0:
+        return
+    # 确保窗口大小不超过矩阵尺寸
+    if n > rows or n > cols:
+        raise ValueError("窗口大小不能大于矩阵的维度")
+
+    for i in range(rows - n + 1):
+        for j in range(cols - n + 1):
+            # 提取窗口：行切片 [i:i+n]，每行再列切片 [j:j+n]
+            window = [row[j : j + n] for row in matrix[i : i + n]]
+            yield (i + n // 2, j + n // 2), window
+
+
 def CopyConstructor(init_func: typing.Callable[..., typing.Any]):
     """
     初始化函数装饰器，用于添加拷贝构造功能。
-    
+
     实际上也同时添加了从子类构造父类的功能。
     """
 
@@ -957,6 +993,7 @@ def CopyConstructor(init_func: typing.Callable[..., typing.Any]):
 
     return wrapper
 
+
 def UseBaseMethod(method: typing.Callable[..., typing.Any]):
     """
     基类方法装饰器，用于使子类调用此方法时，强制使此方法调用基类方法而不是子类覆写的方法。
@@ -970,7 +1007,7 @@ def UseBaseMethod(method: typing.Callable[..., typing.Any]):
     def wrapper(self, *args, **kwargs):
         # TODO:self = globals()[method.__qualname__.split('.')[0]](self)  # 转换为基类实例
         return method(self, *args, **kwargs)
-        
+
     return wrapper
 
 
@@ -995,6 +1032,9 @@ def enumerate_perm(iterable: typing.Iterable):
 
 async def main():
     """测试所有函数的功能"""
+
+    import pipe
+
     # 测试谓词和数值相关
     print(
         f"114 is odd: {is_odd (114)}",
@@ -1004,13 +1044,13 @@ async def main():
         f"33550335 is even: {is_even (33550335)}",
         None,
         f"10 以内 3 的倍数: {(
-            pipe (range (10))
-            |pfilter ( is_divisible_by (3) )
+            pipe.pipe (range (10))
+            |pipe.pfilter ( is_divisible_by (3) )
             |list
             ).get ()}",
         f"10 以内不是 3 的倍数: {(
-            pipe (range (10))
-            |pfilter ( is_indivisible_by (3) )
+            pipe.pipe (range (10))
+            |pipe.pfilter ( is_indivisible_by (3) )
             |list
             ).get ()}",
         f"因式分解 228:{factoring (228)}",
@@ -1109,6 +1149,17 @@ async def main():
     # 测试 neg_line
     print(neg_line("ABC"))  # A̅B̅C̅
     print(neg_line("1010"))  # 1̅0̅1̅0̅
+
+    # 测试滑动窗口
+    matrix = [[1, 2, 3, 4], 
+              [5, 6, 7, 8], 
+              [9, 10, 11, 12], 
+              [13, 14, 15, 16]]
+
+
+    # 获取 2x2 滑动窗口
+    for window in slide_square_window(matrix, 3):
+        print(window)
 
 
 if __name__ == "__main__":

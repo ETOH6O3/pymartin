@@ -39,6 +39,5 @@ pymartin 库
 from . import functions
 from . import pipe
 from . import buildin_signatures
-from . import pythis
 from . import logic
 
