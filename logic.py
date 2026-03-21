@@ -67,7 +67,7 @@ TypeError: 'Logic' object does not support item assignment
 ...                 print(f"t{i} Q={Q},Qn={Qn} => ", end="", file=f)
 ...                 Q, Qn = not (R and Qn), not (
 ...                     S and Q
-...                 )  # python 的阻塞赋值， 相当于 Q <= R ~& Qn; Qn <= S ~& Q; (verilog)
+...                 )  # python 的非阻塞赋值， 相当于 Q <= R ~& Qn; Qn <= S ~& Q; (verilog)
 ...                 print(f" Q={Q},Qn={Qn}", file=f)
 
 2. FmtLogicFunction[input_width,output_width] 逻辑函数封装类
@@ -142,8 +142,9 @@ generate_logic_function_fmt  : 自动推导逻辑函数输入输出格式
 ---
 - 2024-07-10: 实现奎恩 - 麦克拉斯基法化简逻辑函数，模块名称暂为 quine_mccluskey.py
 - 2025-10-25: 逻辑函数化简重磅升级！加入了 Logic 和 _LogicFunction 类，全面支持面向对象编程，用户可以自定义逻辑函数并获取真值表、 sop 和化简结果。模块名称改为 logic.py
-- 2025-10-27: 支持定制格式化输入输出名称，支持有逻辑函数直接生成对应的格式化映射表
+- 2025-10-27: 支持定制格式化输入输出名称，支持由逻辑函数直接生成对应的格式化映射表
 - 2025-10-30: 加入接口 FmtLogicFunction 类，所有流程全自动完成。文档完善。
+- 2025-11-02: 修复示例代码的逻辑错误。
 """
 
 # coding: utf-8
@@ -1123,7 +1124,7 @@ class _LogicFunction[input_width, output_width]:
         Examples:
             >>> def decoder_7448 (input: Logic [4]) -> Logic [7]:
             ...     \"\"\"74LS48 八段管译码器 \"\"\"
-            ...     bin_in = tuple (logic_in)
+            ...     bin_in = tuple(reversed(logic_in)) # 为方便我们改为高位在前
             ...     match bin_in:
             ...         case (False, False, False, False):  # 0
             ...             return Logic [7]("1111110")
@@ -1209,7 +1210,7 @@ class _LogicFunction[input_width, output_width]:
         Examples:
             >>> def decoder_7448 (input: Logic [4]) -> Logic [7]:
             ...     \"\"\"74LS48 八段管译码器 \"\"\"
-            ...     bin_in = tuple (logic_in)
+            ...     bin_in = tuple(reversed(logic_in)) # 为方便我们改为高位在前
             ...     match bin_in:
             ...         case (False, False, False, False):  # 0
             ...             return Logic [7]("1111110")
@@ -1535,7 +1536,7 @@ def _test_logic():
 
     def decoder_7448(logic_in: Logic[4]) -> Logic[7]:
         """7448 译码器"""
-        bin_in = tuple(logic_in)
+        bin_in = tuple(reversed(logic_in))
         match bin_in:
             case (False, False, False, False):  # 0
                 return Logic[7]("1111110")
@@ -1587,6 +1588,46 @@ def _test_logic():
 
     FmtLogicFunction[4, 2](encoder).simp_pipeline()
 
+    @FmtLogicFunction[3, 2]
+    def gray_counter(X: Logic[3]) -> Logic[2]:
+        """格雷码计数器"""
+        match tuple(reversed(X)):
+            case (False, False, False):
+                return Logic[3](1, 3)
+            case (False, False, True):
+                return Logic[3](3, 3)
+            case (False, True, True):
+                return Logic[3](2, 3)
+            case (False, True, False):
+                return Logic[3](6, 3)
+            case (True, True, False):
+                return Logic[3](7, 3)
+            case (True, True, True):
+                return Logic[3](5, 3)
+            case (True, False, True):
+                return Logic[3](4, 3)
+            case (True, False, False):
+                return Logic[3](0, 3)
+            
+    gray_counter.simp_pipeline()
+
+    # @FmtLogicFunction[9,5]
+    # def GPS_radix10(a:Logic[4],b:Logic[4],Cin:Logic[1]):
+    #     """十进制 GPS"""
+    #     G = Logic[1](0)
+    #     P = Logic[1](0)
+    #     if(int(a + b) == 9):
+    #         G = Logic[1](0)
+    #         P = Logic[1](1)
+    #     if(int(a + b) > 9):
+    #         G = Logic[1](1)
+    #         P = Logic[1](0)
+    #     S = (a + b + Cin)[0:4]
+    #     return {"G":G,"P":P,"S":S,"Cout":G | (P & Cin)}
+
+    # GPS_radix10.simp_pipeline()
+        
+
     with open("RS时序转换.txt", "w") as f:
         print(
             "++++++++++++++++++++++++++++++RS 锁存器 ( NAND 实现 )++++++++++++++++++++++++++++++++++++++",
@@ -1602,7 +1643,7 @@ def _test_logic():
                     print(f"t{i} Q={Q},Qn={Qn} => ", end="", file=f)
                     Q, Qn = not (R and Qn), not (
                         S and Q
-                    )  # python 的阻塞赋值， 相当于 Q <= R ~& Qn; Qn <= S ~& Q; (verilog)
+                    )  # python 的非阻塞赋值， 相当于 Q <= R ~& Qn; Qn <= S ~& Q; (verilog)
                     print(f" Q={Q},Qn={Qn}", file=f)
 
 
